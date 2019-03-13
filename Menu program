@@ -1,0 +1,886 @@
+#include   <18f452.h>
+#device    adc=10
+#use       delay (clock=20M)
+#use rs232(baud=9600, xmit=PIN_C6, rcv=PIN_C7,stream=com_1)
+#fuses   BROWNOUT, HS, NOWDT, NOLVP
+
+#define   lcd_d4   pin_c2
+#define   lcd_d5   pin_c3
+#define   lcd_d6   pin_c4
+#define   lcd_d7   pin_c5
+
+#define   lcd_rs   pin_c0
+#define   lcd_en   pin_c1
+#define   menu     pin_d0
+#define   inc      pin_d1
+#define   ls       pin_d2
+
+#define   func_set       0b00101000
+#define   disp_control   0b00001100
+#define   disp_clear     0b00000001
+
+/////////////////////////////////////////////////
+///////// variables /////////////////////////////
+
+unsigned int16   adc_value;
+unsigned int16   adc_value1;
+unsigned int16   adc_value3;
+//unsigned int16   digit1, digit2, digit3, digit4;
+float v=0;
+int f1=1;
+int i=0;
+int j=0;
+int k=0;
+int l=0;
+int m=0;
+int f2=1;
+int f5=1;
+int f3,f6;
+int f7=1;
+int f8=1;
+int f9=1;
+int f4=1;
+int v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14=0;
+float t,temp;
+float c=0;
+/////////////////////////////////////////////////
+///////// functions /////////////////////////////
+
+void   lcd_init       (void);
+void   lcd_data       (unsigned char);
+void   lcd_cmd        (unsigned char);
+void   lcd_nibble     (unsigned char);
+void   lcd_clear      (void);
+void   lcd_line1      (unsigned char);
+void   lcd_line2      (unsigned char);
+void   lcd_line3      (unsigned char);
+void   lcd_line4      (unsigned char);
+//void   bcd            (void);
+void   count          (void);
+void   speed          (void);
+void   pressure       (void);
+void   production     (void);
+void   power          (void);
+void   adcvolt        (void);
+void   adccrnt        (void);
+void   temperature    (void);
+/////////////////////////////////////////////////
+
+void main()
+{   
+   lcd_init();
+   
+   SETUP_ADC_PORTS(AN0_AN1_AN3); 
+  //setup_adc_ports(AN0_AN1_AN3);
+   setup_adc(ADC_CLOCK_DIV_2);
+    SET_TRIS_a(0xff); 
+    SET_TRIS_d(0xff);
+     // output_high(menu);
+while(1)
+   {  
+   
+   if(f1==1)
+   {
+   
+    lcd_cmd(0x0c); 
+    adcvolt();
+    adccrnt();
+    temperature();  
+    count();
+    speed();
+    pressure();
+    production();
+    power();
+    lcd_cmd(0x0c); 
+   }
+   
+   if(!input(menu)==1)
+   {
+     delay_ms(250);
+     j++;
+ 
+       if(j>5)
+       {
+        j=0;
+        delay_ms(250);
+        j++;
+       }
+ 
+       if(j==5)
+       {
+        f1=1;
+       } 
+ 
+ 
+       if(j==1)
+       {
+        printf("\r inside the menu \r",);
+        lcd_clear();
+        lcd_line1(0);
+        printf(lcd_data,"Count:");
+        lcd_line1(7);
+        printf(lcd_data,"%d%d%d%d%d",v1,v2,v3,v4,v5);
+        lcd_line2(0);
+        printf(lcd_data,"Pressure:");
+        lcd_line3(0);
+        printf(lcd_data,"L.V:");
+        lcd_line3(5);
+        printf(lcd_data,"%d%d%d",v6,v7,v8);
+        lcd_line3(9);
+        printf(lcd_data,"H.V:");
+        lcd_line3(13);
+        printf(lcd_data,"%d%d%d",v9,v10,v11);
+    lcd_line4(0);
+    printf(lcd_data,"Temp:");
+    lcd_line4(6);
+    printf(lcd_data,"%d%d%d",v12,v13,v14);
+    lcd_line4(9);
+    printf(lcd_data,"C");   
+    f1=0;
+ }  
+ 
+ 
+ }
+/////////////////////////////// LV ////////////////////////////
+if(f7==1)
+{
+  if(j==2)
+ {
+ lcd_line3(7);
+ lcd_cmd(0x0e); 
+  if(!input(inc)==1&&j==2)
+  {
+  f6=1;
+  if(f6==1)
+  {
+   lcd_line3(7);
+  
+  delay_ms(250);
+  v8=v8+1;
+    printf(lcd_data,"%d",v8);
+   if(v8>8)
+   {
+   v8=0;
+    }
+    lcd_line3(7);
+lcd_cmd(0x0e); 
+  
+  
+  }
+  }
+ 
+ }
+}
+////////////////////////////////////////////////////////////
+
+/////////////////////////////////////// HV ///////////////
+
+if(f2==1)
+{
+  if(j==3)
+ {
+ lcd_line3(15);
+ lcd_cmd(0x0e); 
+  if(!input(inc)==1&&j==3)
+  {
+  f5=1;
+  if(f5==1)
+  {
+   lcd_line3(15);
+  
+  delay_ms(250);
+  v11=v11+1;
+    printf(lcd_data,"%d",v11);
+   if(v11>8)
+   {
+   v11=0;
+    }
+    lcd_line3(15);
+lcd_cmd(0x0e); 
+  
+  
+  }
+  }
+ 
+ }
+}
+
+
+
+
+////////////////////////left shift for presure lv ////////// 
+ if(!input(ls)==1&&j==2)
+ {
+   f7=0; 
+   f6=0;
+  delay_ms(250);
+ 
+ k++;
+ 
+ if(k>3)
+ {
+ k=0;
+ delay_ms(250);
+ k++;
+ }
+f4=0;
+
+ }
+ 
+ if(k==1&&j==2)
+ {
+  lcd_line3(6);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v7=v7+1;
+    printf(lcd_data,"%d",v7);
+   if(v7>8)
+   {
+   v7=0;
+    }
+    lcd_line3(6);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+  if(k==2&&j==2)
+ {
+  lcd_line3(5);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v6=v6+1;
+    printf(lcd_data,"%d",v6);
+   if(v6>8)
+   {
+   v6=0;
+    }
+    lcd_line3(5);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+ if(k==3&&j==2)
+ {
+  lcd_line3(7);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v8=v8+1;
+    printf(lcd_data,"%d",v6);
+   if(v8>8)
+   {
+   v8=0;
+    }
+    lcd_line3(7);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+ /////////////////////////////Left shift for HV/////////////////////////
+ 
+ 
+ 
+  if(!input(ls)==1&&j==3)
+ {
+   f2=0; 
+   f5=0;
+  delay_ms(250);
+ 
+ l++;
+ 
+ if(l>3)
+ {
+ l=0;
+ delay_ms(250);
+ l++;
+ }
+f4=0;
+
+ }
+ 
+ if(l==1&&j==3)
+ {
+  lcd_line3(14);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v10=v10+1;
+    printf(lcd_data,"%d",v10);
+   if(v10>8)
+   {
+   v10=0;
+    }
+    lcd_line3(14);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+  if(l==2&&j==3)
+ {
+  lcd_line3(13);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v9=v9+1;
+    printf(lcd_data,"%d",v9);
+   if(v9>8)
+   {
+   v9=0;
+    }
+    lcd_line3(13);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+ if(l==3&&j==3)
+ {
+  lcd_line3(15);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v11=v11+1;
+    printf(lcd_data,"%d",v11);
+   if(v11>8)
+   {
+   v11=0;
+    }
+    lcd_line3(15);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+ 
+ /////////////////////////Temp Left shifting/////////////////////////////
+ 
+ if(f8==1)
+{
+  if(j==4)
+ {
+ lcd_line4(8);
+ lcd_cmd(0x0e); 
+  if(!input(inc)==1&&j==4)
+  {
+  f9=1;
+  if(f9==1)
+  {
+   lcd_line4(8);
+  
+  delay_ms(250);
+  v14=v14+1;
+    printf(lcd_data,"%d",v14);
+   if(v14>8)
+   {
+   v14=0;
+    }
+    lcd_line4(8);
+lcd_cmd(0x0e); 
+  
+  
+  }
+  }
+ 
+ }
+}
+ 
+ 
+ 
+ 
+ if(!input(ls)==1&&j==4)
+ {
+   f8=0; 
+   f9=0;
+  delay_ms(250);
+ 
+ m++;
+ 
+ if(m>3)
+ {
+ m=0;
+ delay_ms(250);
+ m++;
+ }
+ }
+ 
+ if(m==1&&j==4)
+ {
+  lcd_line4(7);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v13=v13+1;
+    printf(lcd_data,"%d",v13);
+   if(v13>8)
+   {
+   v13=0;
+    }
+    lcd_line4(7);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+  if(m==2&&j==4)
+ {
+  lcd_line4(6);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v12=v12+1;
+    printf(lcd_data,"%d",v12);
+   if(v12>8)
+   {
+   v12=0;
+    }
+    lcd_line4(6);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+ if(m==3&&j==4)
+ {
+  lcd_line4(8);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v14=v14+1;
+    printf(lcd_data,"%d",v14);
+   if(v14>8)
+   {
+   v14=0;
+    }
+    lcd_line4(8);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+ 
+ 
+ ///////////////////////////////////////////////////////////////////////////
+ 
+ 
+ if(f4==1)
+ {
+ if((!input(inc)==1)&&(j==1))
+ {
+ f2=0;
+ f1=0;
+ f3=1;
+
+ if(f3==1)
+ {
+  
+  lcd_line1(11);
+  
+  delay_ms(250);
+  v5=v5+1;
+    printf(lcd_data,"%d",v5);
+   if(v5>8)
+   {
+   v5=0;
+    }
+    lcd_line1(11);
+lcd_cmd(0x0e); 
+  
+  
+    
+ }
+ 
+ }
+ }
+ 
+ ////////////////////////////////////////////////////////////////////////////
+ 
+ 
+ //////////////////////left shift for count/////////////////////////////////
+ 
+ if(!input(ls)==1&&j==1)
+ {
+ delay_ms(250);
+ 
+ i++;
+ if(i>5)
+ {
+ i=0;
+ delay_ms(250);
+ i++;
+ }
+ 
+ f4=0;
+ f5=1;
+ }
+ if(i==1&&j==1)
+ {
+  lcd_line1(10);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v4=v4+1;
+    printf(lcd_data,"%d",v4);
+   if(v4>8)
+   {
+   v4=0;
+    }
+    lcd_line1(10);
+lcd_cmd(0x0e); 
+  
+  
+  }
+ 
+ }
+ 
+  if(i==2&&j==1)
+ {
+  lcd_line1(9);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v3=v3+1;
+    printf(lcd_data,"%d",v3);
+   if(v3>8)
+   {
+   v3=0;
+    }
+    lcd_line1(9);
+lcd_cmd(0x0e); 
+ 
+  }
+ 
+ }
+ 
+   if(i==3&&j==1)
+ {
+  lcd_line1(8);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v2=v2+1;
+    printf(lcd_data,"%d",v2);
+   if(v2>8)
+   {
+   v2=0;
+    }
+    lcd_line1(8);
+lcd_cmd(0x0e); 
+ 
+  }
+ 
+ }
+ 
+ if(i==4&&j==1)
+ {
+  lcd_line1(7);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v1=v1+1;
+    printf(lcd_data,"%d",v2);
+   if(v1>8)
+   {
+   v1=0;
+    }
+    lcd_line1(7);
+lcd_cmd(0x0e); 
+ 
+  }
+ 
+ }
+ 
+  if(i==5&&j==1)
+ {
+  lcd_line1(11);
+  
+  if(!input(inc)==1)
+  {
+   delay_ms(250);
+  v5=v5+1;
+    printf(lcd_data,"%d",v5);
+   if(v5>8)
+   {
+   v5=0;
+    }
+    lcd_line1(11);
+lcd_cmd(0x0e); 
+ 
+  }
+ 
+ }
+ 
+ 
+ 
+ 
+}
+
+}
+
+/////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////
+
+void adcvolt()
+{
+ set_adc_channel(0);
+   delay_us(100);
+
+   adc_value = read_adc();
+  // v= adc_value;
+   v=(adc_value*4.999/1024)*92.2; 
+   
+ printf("\r voltage: %06.2f \r",v);
+
+   //bcd();
+
+   lcd_line3(10);
+   //lcd_gotoxy(3,10);
+  // lcd_data("volt = ");
+   printf(lcd_data,"V:%05.2f ",v);
+     
+   //lcd_data(digit4+0x30);
+   //lcd_data(digit3+0x30);
+  // lcd_data(digit2+0x30);
+  // lcd_data(digit1+0x30);
+
+}
+
+//////////////////////////////////////////////////////
+
+void adccrnt()
+{
+  setup_adc(ADC_CLOCK_INTERNAL); // initialize ADC with a sampling rate of Crystal/4 MHz
+   
+ set_adc_channel(1); 
+ adc_value1=read_adc();
+ c=(adc_value1*4.999/1024)*6.02;
+  printf("\r current: %f \r",c);
+  
+   lcd_line3(0);
+   //lcd_gotoxy(3,1);
+    printf(lcd_data,"C:%06.2f ",c);
+ 
+} 
+
+///////////////////////////////////////////////////////////////////
+
+void temperature()
+{
+ setup_adc(ADC_CLOCK_INTERNAL); 
+set_adc_channel(3);
+adc_value3=read_adc();
+T=adc_value3*4.88281;
+temp=T/10.0;
+ printf("\r Temperature: %f \r",temp);
+   lcd_line1(10);
+printf(lcd_data,"T:%f",temp);
+}
+
+/////////////////////////////////////////////////////////////////
+
+void count() 
+{
+ lcd_line1(0);
+printf(lcd_data,"Count:");
+
+}
+
+
+/////////////////////////////////////////////////////////////////
+
+
+void speed()
+{
+ lcd_line2(0);
+printf(lcd_data,"Spd:");
+
+}
+
+
+//////////////////////////////////////////////////////////////////
+
+void pressure()
+{
+ lcd_line2(10);
+printf(lcd_data,"Psi:");
+
+}
+
+
+//////////////////////////////////////////////////////////////////
+
+
+void production()
+{
+lcd_line4(0);
+//lcd_gotoxy(4,1);
+printf(lcd_data,"Prdtn:");
+
+}
+
+//////////////////////////////////////////////////////////////////
+
+void power()
+{
+ lcd_line4(10);
+ //lcd_gotoxy(4,10);
+printf(lcd_data,"Pwr:");
+
+}
+
+
+/////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////
+
+/*void bcd (void)
+{   
+   digit4 = (adc_value/1000);
+   digit3 = (adc_value/100 ) % 10;
+   digit2 = (adc_value/10  ) % 10;
+   digit1 = (adc_value     ) % 10;
+   
+   //5623456
+}*/
+
+/////////////////////////////////////////////////
+
+void   lcd_init (void)            // its a lcd initilize function
+{   
+   output_low (lcd_rs);
+   output_low (lcd_en);
+
+   delay_ms(250);
+
+   lcd_nibble(func_set);
+
+   delay_ms(1);
+   lcd_cmd(func_set);      // function set
+
+   delay_ms(1);
+   lcd_cmd(func_set);      // function set
+
+   delay_ms(1);
+   lcd_cmd(func_set);      // function set
+
+   lcd_cmd(disp_control);   // display controll
+
+   lcd_clear();
+
+}
+
+/////////////////////////////////////////////////
+
+void lcd_line1 (unsigned char position)   //lcd line 1 position function
+{   lcd_cmd(0x80 + position); }
+
+void lcd_line2 (unsigned char position)   //lcd line 2 position function
+{   lcd_cmd(0xc0 + position); }
+void lcd_line3 (unsigned char position)   // lcd line 3 position function
+{
+lcd_cmd(0x94 + position);
+}
+void lcd_line4 (unsigned char position)   // lcd line 4 position function
+{
+lcd_cmd(0xd4 + position);
+}
+
+
+
+/////////////////////////////////////////////////
+
+void lcd_clear (void)                     // its a lcd clear function
+{   
+    lcd_cmd (disp_clear);
+    delay_ms(50);
+}
+
+/////////////////////////////////////////////////
+
+void   lcd_cmd (unsigned char i)          // its a command function
+{   
+   unsigned int8 temp;
+
+   output_low (lcd_rs);      
+   temp=i;
+   lcd_nibble (temp);
+
+   temp=temp<<4;
+   lcd_nibble (temp);
+
+}
+
+/////////////////////////////////////////////////
+
+void   lcd_data(unsigned char i)          // its a data function
+{   
+   unsigned int8 temp;
+
+   output_high(lcd_rs);      
+   temp=i;
+   lcd_nibble (temp);
+
+   temp=temp<<4;
+   lcd_nibble (temp);
+}
+
+/////////////////////////////////////////////////
+
+void lcd_nibble (unsigned char j)         // its a 4 bit mode function for lcd
+{   
+   if(bit_test(j,4))   output_high(lcd_d4);
+   else                output_low (lcd_d4);
+
+   if(bit_test(j,5))   output_high(lcd_d5);
+   else                output_low (lcd_d5);
+
+   if(bit_test(j,6))   output_high(lcd_d6);
+   else                output_low (lcd_d6);
+
+   if(bit_test(j,7))   output_high(lcd_d7);
+   else                output_low (lcd_d7);
+
+   output_high(lcd_en);
+   delay_us (50);
+   output_low (lcd_en);
+}
+
+/////////////////////////////////////////////////
