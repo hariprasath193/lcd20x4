@@ -138,9 +138,10 @@ void main()
            printf(lcd_data,"C");   
            f1=0;
          }  
-    }
+     }
 /////////////////////////////// LV ////////////////////////////
-    if(f7==1)
+    i
+    f(f7==1)
     {
         if(j==2)
         {
@@ -210,87 +211,89 @@ void main()
 
 
 ////////////////////////left shift for presure lv ////////// 
- if(!input(ls)==1&&j==2)
- {
-     f7=0; 
-     f6=0;
-     delay_ms(250);
+    if(!input(ls)==1&&j==2)
+    {
+        f7=0; 
+        f6=0;
+        delay_ms(250);
  
-     k++;
+        k++;  
  
-     if(k>3)
+           if(k>3)
+           {
+             k=0;
+             delay_ms(250);
+             k++;
+           }
+        
+        f4=0;
+    }
+ 
+ 
+ 
+    
+    if(k==1&&j==2)
      {
-       k=0;
-       delay_ms(250);
-       k++;
+         lcd_line3(6);
+  
+         if(!input(inc)==1)
+         {
+             delay_ms(250);
+             v7=v7+1;
+             printf(lcd_data,"%d",v7);
+   
+                if(v7>8)
+                {
+                   v7=0;
+                }
+                lcd_line3(6);
+                lcd_cmd(0x0e); 
+  
+         }
      }
-     f4=0;
-
- }
+  
  
  
- if(k==1&&j==2)
- {
-  lcd_line3(6);
-  
-  if(!input(inc)==1)
-  {
-   delay_ms(250);
-  v7=v7+1;
-    printf(lcd_data,"%d",v7);
-   if(v7>8)
-   {
-   v7=0;
-    }
-    lcd_line3(6);
-lcd_cmd(0x0e); 
-  
-  
-  }
  
- }
+     if(k==2&&j==2)
+     {
+           lcd_line3(5);
+  
+           if(!input(inc)==1)
+           {
+                delay_ms(250);
+                v6=v6+1;
+                printf(lcd_data,"%d",v6);
+                if(v6>8)
+                 {
+                    v6=0;
+                 }
+                lcd_line3(5);
+                lcd_cmd(0x0e); 
+           }
+      }
  
-  if(k==2&&j==2)
- {
-  lcd_line3(5);
+     
+     
+     
+      if(k==3&&j==2)
+      {
+          lcd_line3(7);
   
-  if(!input(inc)==1)
-  {
-   delay_ms(250);
-  v6=v6+1;
-    printf(lcd_data,"%d",v6);
-   if(v6>8)
-   {
-   v6=0;
-    }
-    lcd_line3(5);
-lcd_cmd(0x0e); 
-  
-  
-  }
+          if(!input(inc)==1)
+          {
+             delay_ms(250);
+             v8=v8+1;
+             printf(lcd_data,"%d",v6);
+             if(v8>8)
+              {
+              v8=0;
+              }
+             lcd_line3(7);
+             lcd_cmd(0x0e); 
+          }
  
- }
- 
- if(k==3&&j==2)
- {
-  lcd_line3(7);
-  
-  if(!input(inc)==1)
-  {
-   delay_ms(250);
-  v8=v8+1;
-    printf(lcd_data,"%d",v6);
-   if(v8>8)
-   {
-   v8=0;
-    }
-    lcd_line3(7);
-lcd_cmd(0x0e); 
-  
-  
-  }
- 
- }
+      }
  
  /////////////////////////////Left shift for HV/////////////////////////
  
